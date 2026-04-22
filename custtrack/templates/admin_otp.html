@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Verification — CustTrack</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', Arial, sans-serif; min-height: 100vh; display: flex; background: #0d1b2a; align-items: center; justify-content: center; }
+
+        .bg-circle { position: fixed; border-radius: 50%; opacity: 0.05; background: #008fd3; animation: pulse 6s ease-in-out infinite; }
+        .bg-circle:nth-child(1) { width: 500px; height: 500px; top: -150px; right: -150px; }
+        .bg-circle:nth-child(2) { width: 300px; height: 300px; bottom: -80px; left: -80px; animation-delay: 3s; }
+        @keyframes pulse { 0%,100%{transform:scale(1);opacity:.05} 50%{transform:scale(1.1);opacity:.09} }
+
+        .card {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px); border-radius: 16px; padding: 44px 40px;
+            width: 90%; max-width: 400px; text-align: center; position: relative; z-index: 1;
+        }
+
+        .shield { font-size: 3rem; margin-bottom: 16px; }
+        h2 { color: white; font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; }
+        .sub { color: rgba(255,255,255,0.5); font-size: 0.88rem; line-height: 1.6; margin-bottom: 28px; }
+        .email-chip {
+            display: inline-block; background: rgba(0,143,211,0.2); border: 1px solid rgba(0,143,211,0.4);
+            color: #5bc8f5; padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; margin-bottom: 28px;
+        }
+
+        .otp-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+        .otp-digit {
+            width: 48px; height: 56px; text-align: center; font-size: 1.4rem; font-weight: 700;
+            background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.15);
+            border-radius: 8px; color: white; outline: none; transition: all 0.15s;
+            caret-color: #008fd3;
+        }
+        .otp-digit:focus { border-color: #008fd3; background: rgba(0,143,211,0.1); box-shadow: 0 0 0 3px rgba(0,143,211,0.2); }
+
+        .btn-verify {
+            width: 100%; padding: 14px; background: #008fd3; color: white;
+            border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
+            font-size: 0.95rem; display: flex; align-items: center; justify-content: center;
+            gap: 8px; transition: all 0.2s; font-family: inherit;
+            box-shadow: 0 4px 16px rgba(0,143,211,0.35); margin-bottom: 16px;
+        }
+        .btn-verify:hover { background: #0078b3; transform: translateY(-1px); }
+        .btn-verify:disabled { background: #2a5a7a; cursor: not-allowed; transform: none; }
+
+        .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .resend-row { font-size: 0.82rem; color: rgba(255,255,255,0.4); }
+        .resend-btn { background: none; border: none; color: #5bc8f5; cursor: pointer; font-size: 0.82rem; font-family: inherit; text-decoration: underline; }
+        .resend-btn:disabled { color: rgba(255,255,255,0.3); cursor: not-allowed; text-decoration: none; }
+
+        .error-box {
+            background: rgba(231,76,60,0.15); border: 1px solid rgba(231,76,60,0.4);
+            color: #f1948a; padding: 10px 14px; border-radius: 8px; margin-bottom: 18px;
+            font-size: 0.84rem;
+        }
+        .back-link { display: block; margin-top: 20px; color: rgba(255,255,255,0.35); font-size: 0.8rem; text-decoration: none; }
+        .back-link:hover { color: rgba(255,255,255,0.6); }
+    </style>
+</head>
+<body>
+    <div class="bg-circle"></div>
+    <div class="bg-circle"></div>
+
+    <div class="card">
+        <div class="shield">🛡️</div>
+        <h2>Admin Verification</h2>
+        <p class="sub">A 6-digit OTP has been sent to your admin email. Enter it below to continue.</p>
+        <div class="email-chip">{{ email }}</div>
+
+        {% if error %}
+        <div class="error-box">⚠️ {{ error }}</div>
+        {% endif %}
+
+        <form action="/admin/otp" method="POST" onsubmit="handleVerify(this)">
+            <div class="otp-row" id="otpRow">
+                <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+            </div>
+            <input type="hidden" name="otp" id="otpHidden">
+
+            <button type="submit" class="btn-verify" id="verifyBtn">
+                <span class="spinner" id="spinner"></span>
+                <span id="btnText">Verify &amp; Enter Admin</span>
+            </button>
+        </form>
+
+        <div class="resend-row">
+            Didn't receive it?
+            <button class="resend-btn" id="resendBtn" onclick="resendOtp()">Resend OTP</button>
+            <span id="resendTimer"></span>
+        </div>
+
+        <a href="/" class="back-link">← Back to login</a>
+    </div>
+
+    <script>
+    var digits = document.querySelectorAll('.otp-digit');
+    digits.forEach(function(d, i) {
+        d.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value && i < digits.length - 1) digits[i+1].focus();
+            updateHidden();
+        });
+        d.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && !this.value && i > 0) digits[i-1].focus();
+        });
+        d.addEventListener('paste', function(e) {
+            e.preventDefault();
+            var text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'');
+            digits.forEach(function(d2, j) { d2.value = text[j] || ''; });
+            updateHidden();
+            if (text.length >= 6) digits[5].focus();
+        });
+    });
+    digits[0].focus();
+
+    function updateHidden() {
+        var val = '';
+        digits.forEach(function(d) { val += d.value; });
+        document.getElementById('otpHidden').value = val;
+    }
+
+    function handleVerify(form) {
+        updateHidden();
+        var btn = document.getElementById('verifyBtn');
+        var sp = document.getElementById('spinner');
+        var txt = document.getElementById('btnText');
+        btn.disabled = true;
+        sp.style.display = 'block';
+        txt.textContent = 'Verifying…';
+        return true;
+    }
+
+    var resendCooldown = 0;
+    function resendOtp() {
+        if (resendCooldown > 0) return;
+        var btn = document.getElementById('resendBtn');
+        btn.disabled = true;
+        fetch('/admin/resend_otp', {method:'POST'})
+            .then(function(r){return r.json();})
+            .then(function(d){
+                if (d.success) {
+                    resendCooldown = 60;
+                    startTimer();
+                } else {
+                    btn.disabled = false;
+                    alert('Failed to resend OTP.');
+                }
+            });
+    }
+
+    function startTimer() {
+        var timer = document.getElementById('resendTimer');
+        var btn = document.getElementById('resendBtn');
+        var iv = setInterval(function() {
+            resendCooldown--;
+            timer.textContent = '(' + resendCooldown + 's)';
+            if (resendCooldown <= 0) {
+                clearInterval(iv);
+                timer.textContent = '';
+                btn.disabled = false;
+            }
+        }, 1000);
+    }
+    </script>
+</body>
+</html>

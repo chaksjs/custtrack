@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — CustTrack</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', Arial, sans-serif; background: #eef1f5; min-height: 100vh; color: #1a2332; }
+
+        /* ── Header — navy like login ── */
+        header {
+            background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 100%);
+            padding: 0 20px; height: 54px; display: flex; align-items: center;
+            justify-content: space-between; position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+        }
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .brand-icon { width: 34px; height: 34px; background: #008fd3; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(0,143,211,0.4); }
+        .brand-name { font-weight: 800; font-size: 1rem; color: white; }
+        .brand-name span { color: #008fd3; }
+        .admin-badge { background: rgba(240,171,0,0.25); border: 1px solid rgba(240,171,0,0.5); color: #f0ab00; padding: 2px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; margin-left: 8px; }
+        .header-right { display: flex; gap: 16px; align-items: center; }
+        .header-right a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.82rem; transition: color 0.15s; }
+        .header-right a:hover { color: white; }
+
+        /* ── Container ── */
+        .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+
+        /* ── Page title ── */
+        .page-title { margin-bottom: 24px; }
+        .page-title h1 { font-size: 1.6rem; font-weight: 800; color: #0d1b2a; }
+        .page-title p { color: #6b7a8d; font-size: 0.88rem; margin-top: 4px; }
+
+        /* ── Stats row ── */
+        .stats-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .stat-card {
+            background: white; border-radius: 10px; padding: 16px 20px; flex: 1; min-width: 140px;
+            border-left: 4px solid #008fd3; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+        }
+        .stat-card.gold { border-left-color: #f0ab00; }
+        .stat-card.green { border-left-color: #27ae60; }
+        .stat-num { font-size: 2rem; font-weight: 800; color: #0d1b2a; line-height: 1; }
+        .stat-label { font-size: 0.7rem; color: #6b7a8d; text-transform: uppercase; margin-top: 4px; }
+
+        /* ── Search ── */
+        .search-bar { margin-bottom: 16px; }
+        .search-bar input {
+            width: 100%; padding: 11px 16px; background: white;
+            border: 1px solid #e0e4ea; border-radius: 8px; color: #1a2332;
+            font-size: 0.9rem; outline: none; font-family: inherit; transition: border-color 0.15s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .search-bar input:focus { border-color: #008fd3; box-shadow: 0 0 0 3px rgba(0,143,211,0.1); }
+
+        /* ── Table ── */
+        .table-wrap { background: white; border: 1px solid #e0e4ea; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        table { width: 100%; border-collapse: collapse; }
+        th { padding: 12px 16px; text-align: left; font-size: 0.68rem; color: #6b7a8d; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e0e4ea; background: #f8f9fb; font-weight: 700; }
+        td { padding: 13px 16px; border-bottom: 1px solid #f0f2f5; font-size: 0.88rem; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f5f8fc; }
+
+        .user-name { font-weight: 600; color: #1a2332; }
+        .count-badge { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; }
+        .count-active { background: #eafaf1; color: #1e8449; }
+        .count-zero { background: #f0f2f5; color: #aaa; }
+
+        .btn-sm {
+            height: 32px; padding: 0 12px; border-radius: 6px; border: none;
+            cursor: pointer; font-size: 0.78rem; font-weight: 600; font-family: inherit;
+            display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s;
+            text-decoration: none; white-space: nowrap;
+        }
+        .btn-view { background: #e8f4fb; color: #0078b3; border: 1px solid #c5e3f5; }
+        .btn-view:hover { background: #d0eaf8; }
+        .btn-delete { background: #fdecea; color: #c0392b; border: 1px solid #f5b7b1; }
+        .btn-delete:hover { background: #fad7d3; }
+        .btn-delete:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .empty-state { text-align: center; padding: 48px; color: #bbb; }
+
+        /* ── Toast ── */
+        #toastContainer { position: fixed; top: 66px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { background: white; border-radius: 8px; padding: 12px 16px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; min-width: 220px; border-left: 4px solid #008fd3; box-shadow: 0 4px 16px rgba(0,0,0,0.1); animation: slideIn 0.25s ease; color: #1a2332; }
+        .toast.success { border-left-color: #27ae60; }
+        .toast.error { border-left-color: #e74c3c; }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div id="toastContainer"></div>
+
+<header>
+    <div class="brand">
+        <div class="brand-icon">🤝</div>
+        <div class="brand-name">Cust<span>Track</span></div>
+        <span class="admin-badge">⚡ SUPER ADMIN</span>
+    </div>
+    <div class="header-right">
+        <a href="/">My Customers</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+    </div>
+</header>
+
+<div class="container">
+    <div class="page-title">
+        <h1>👥 User Management</h1>
+        <p>Overview of all CustTrack users, their activity and customer data.</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-num" id="statUsers">{{ users|length }}</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card gold">
+            <div class="stat-num" id="statActive">0</div>
+            <div class="stat-label">Active Today</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-num" id="statCustomers">0</div>
+            <div class="stat-label">Total Customers</div>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="🔍 Search users…" oninput="filterUsers()">
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+        {% if users %}
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>User</th>
+                    <th>First Login</th>
+                    <th>Last Login</th>
+                    <th>Logins</th>
+                    <th>Active</th>
+                    <th>Total</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="userTable">
+                {% for u in users %}
+                <tr id="user-row-{{ loop.index }}" data-name="{{ u.id|lower }}">
+                    <td style="color:#bbb; font-size:0.8rem;">{{ loop.index }}</td>
+                    <td>
+                        <div class="user-name">{{ u.id }}</div>
+                    </td>
+                    <td style="color:#6b7a8d; font-size:0.82rem;">{{ u.first_login }}</td>
+                    <td style="color:#6b7a8d; font-size:0.82rem;">{{ u.last_login }}</td>
+                    <td style="color:#1a2332;">{{ u.login_count }}</td>
+                    <td>
+                        <span class="count-badge {% if u.active_customers > 0 %}count-active{% else %}count-zero{% endif %}">
+                            {{ u.active_customers }}
+                        </span>
+                    </td>
+                    <td style="color:#6b7a8d;">{{ u.total_customers }}</td>
+                    <td style="text-align:right;">
+                        <div style="display:flex; gap:6px; justify-content:flex-end;">
+                            <a href="/admin/view/{{ u.id }}" class="btn-sm btn-view">👁 View</a>
+                            <button class="btn-sm btn-delete" onclick="deleteUser('{{ u.id }}', this)">🗑 Delete</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">No users found yet.</div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Compute stats on load
+window.onload = function() {
+    var rows = document.querySelectorAll('#userTable tr');
+    var totalCustomers = 0;
+    var today = new Date().toISOString().slice(0,10);
+    var activeToday = 0;
+    rows.forEach(function(row) {
+        var cells = row.querySelectorAll('td');
+        if (cells.length < 7) return;
+        var lastLogin = cells[3].textContent.trim();
+        if (lastLogin.startsWith(today)) activeToday++;
+        var active = parseInt(cells[5].textContent.trim()) || 0;
+        totalCustomers += active;
+    });
+    document.getElementById('statActive').textContent = activeToday;
+    document.getElementById('statCustomers').textContent = totalCustomers;
+};
+
+function filterUsers() {
+    var q = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('#userTable tr').forEach(function(row) {
+        var name = row.getAttribute('data-name') || '';
+        row.style.display = name.includes(q) ? '' : 'none';
+    });
+}
+
+function deleteUser(userId, btn) {
+    if (!confirm('Delete ALL data for user "' + userId + '"? This cannot be undone.')) return;
+    btn.disabled = true;
+    btn.textContent = '⏳';
+    fetch('/admin/delete_user/' + encodeURIComponent(userId), {method: 'POST'})
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.success) {
+                var row = btn.closest('tr');
+                row.style.opacity = '0.3';
+                row.style.pointerEvents = 'none';
+                showToast('User "' + userId + '" deleted.', 'success');
+                var statEl = document.getElementById('statUsers');
+                statEl.textContent = parseInt(statEl.textContent) - 1;
+            } else {
+                btn.disabled = false;
+                btn.textContent = '🗑 Delete';
+                showToast('Delete failed.', 'error');
+            }
+        })
+        .catch(function() {
+            btn.disabled = false;
+            btn.textContent = '🗑 Delete';
+            showToast('Network error.', 'error');
+        });
+}
+
+function showToast(msg, type) {
+    var tc = document.getElementById('toastContainer');
+    var t = document.createElement('div');
+    t.className = 'toast ' + (type || 'info');
+    t.textContent = msg;
+    tc.appendChild(t);
+    setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 3000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CustTrack — First-Time Setup</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', Arial, sans-serif; background: #eef1f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 24px 16px 48px; }
+
+        .setup-header { text-align: center; margin-bottom: 28px; }
+        .brand { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .brand-icon { width: 44px; height: 44px; background: #008fd3; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: 0 6px 18px rgba(0,143,211,0.35); }
+        .brand-name { font-size: 1.4rem; font-weight: 800; color: #0d1b2a; }
+        .brand-name span { color: #008fd3; }
+        .setup-header h1 { font-size: 1.5rem; font-weight: 800; color: #0d1b2a; margin-bottom: 6px; }
+        .setup-header p { font-size: 0.88rem; color: #6b7a8d; max-width: 440px; line-height: 1.6; }
+
+        /* Progress steps */
+        .steps { display: flex; align-items: center; gap: 0; margin-bottom: 28px; }
+        .step { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .step-circle {
+            width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 0.78rem; font-weight: 700; border: 2px solid #d0d8e4; color: #aab; background: white;
+            transition: all 0.3s;
+        }
+        .step.active .step-circle { background: #008fd3; border-color: #008fd3; color: white; box-shadow: 0 4px 12px rgba(0,143,211,0.35); }
+        .step.done .step-circle { background: #27ae60; border-color: #27ae60; color: white; }
+        .step-label { font-size: 0.65rem; color: #aab; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+        .step.active .step-label { color: #008fd3; }
+        .step.done .step-label { color: #27ae60; }
+        .step-line { flex: 1; height: 2px; background: #d0d8e4; min-width: 24px; margin-bottom: 18px; transition: background 0.3s; }
+        .step-line.done { background: #27ae60; }
+
+        /* Card */
+        .card { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); width: 100%; max-width: 520px; overflow: hidden; }
+        .card-header { background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 100%); padding: 20px 28px; }
+        .card-header h2 { color: white; font-size: 1rem; font-weight: 700; margin-bottom: 3px; }
+        .card-header p { color: rgba(255,255,255,0.55); font-size: 0.78rem; line-height: 1.5; }
+        .card-body { padding: 24px 28px; }
+
+        /* Form fields */
+        .field { margin-bottom: 16px; }
+        .field label { display: block; font-size: 0.7rem; font-weight: 700; color: #6b7a8d; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+        .field label .req { color: #e74c3c; margin-left: 2px; }
+        .field label .opt { color: #aab; font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 0.68rem; margin-left: 4px; }
+        .field input, .field select {
+            width: 100%; padding: 11px 14px; border: 1.5px solid #e0e4ea; border-radius: 8px;
+            font-size: 14px; outline: none; transition: border-color 0.15s; color: #1a2332;
+            background: #fafbfc; font-family: inherit;
+        }
+        .field input:focus, .field select:focus { border-color: #008fd3; background: white; box-shadow: 0 0 0 3px rgba(0,143,211,0.1); }
+        .field input::placeholder { color: #bbb; }
+        .field .hint { font-size: 0.7rem; color: #aab; margin-top: 5px; line-height: 1.5; }
+        .field .hint a { color: #008fd3; text-decoration: none; }
+        .field .hint a:hover { text-decoration: underline; }
+
+        .row2 { display: flex; gap: 12px; }
+        .row2 .field { flex: 1; }
+
+        /* Password reveal */
+        .pw-wrap { position: relative; }
+        .pw-wrap input { padding-right: 42px; }
+        .pw-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1rem; color: #aab; padding: 2px; }
+
+        /* Info box */
+        .info-box { background: #f0f7fc; border: 1px solid #d0e6ff; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.78rem; color: #1a5276; line-height: 1.6; }
+        .info-box strong { color: #0d1b2a; }
+
+        /* Error box */
+        .error-box { background: #fdf2f2; border: 1px solid #f5b7b1; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.82rem; color: #c0392b; display: flex; align-items: flex-start; gap: 8px; }
+
+        /* Buttons */
+        .btn-row { display: flex; gap: 10px; margin-top: 8px; }
+        .btn-next { flex: 1; height: 44px; background: #008fd3; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; font-family: inherit; transition: all 0.15s; box-shadow: 0 4px 12px rgba(0,143,211,0.3); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-next:hover { background: #0078b3; transform: translateY(-1px); }
+        .btn-next:disabled { background: #7ec8e8; cursor: not-allowed; box-shadow: none; transform: none; }
+        .btn-back { height: 44px; padding: 0 18px; background: white; border: 1.5px solid #e0e4ea; color: #6b7a8d; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+        .btn-back:hover { background: #f5f8fc; }
+
+        /* Spinner */
+        .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.35); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Step panels */
+        .step-panel { display: none; }
+        .step-panel.active { display: block; }
+
+        /* Test connection result */
+        .conn-result { margin-top: 10px; padding: 10px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; display: none; }
+        .conn-result.ok { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
+        .conn-result.fail { background: #fdf2f2; color: #c0392b; border: 1px solid #f5b7b1; }
+
+        /* Summary */
+        .summary-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #f0f2f5; font-size: 0.85rem; }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-row .key { color: #6b7a8d; font-weight: 600; }
+        .summary-row .val { color: #1a2332; font-weight: 500; text-align: right; max-width: 260px; word-break: break-all; }
+
+        @media (max-width: 560px) {
+            .card-body { padding: 20px 18px; }
+            .steps { gap: 0; }
+            .step-label { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="setup-header">
+    <div class="brand">
+        <div class="brand-icon">🤝</div>
+        <div class="brand-name">Cust<span>Track</span></div>
+    </div>
+    <h1>Welcome! Let's set up your app.</h1>
+    <p>This one-time setup takes about 2 minutes. You'll need your SAP HANA Cloud credentials and a Gmail account for sending OTPs.</p>
+</div>
+
+<!-- Progress steps -->
+<div class="steps" id="stepsBar">
+    <div class="step active" id="s1"><div class="step-circle">1</div><div class="step-label">Database</div></div>
+    <div class="step-line" id="l1"></div>
+    <div class="step" id="s2"><div class="step-circle">2</div><div class="step-label">Admin</div></div>
+    <div class="step-line" id="l2"></div>
+    <div class="step" id="s3"><div class="step-circle">3</div><div class="step-label">Email</div></div>
+    <div class="step-line" id="l3"></div>
+    <div class="step" id="s4"><div class="step-circle">4</div><div class="step-label">Review</div></div>
+</div>
+
+<div class="card">
+
+    {% if error %}
+    <div style="padding: 16px 28px 0;">
+        <div class="error-box">⚠️ <span>{{ error }}</span></div>
+    </div>
+    {% endif %}
+
+    <form method="POST" id="setupForm" onsubmit="return handleSubmit()">
+
+        <!-- ── Step 1: HANA Database ── -->
+        <div class="step-panel active" id="panel1">
+            <div class="card-header">
+                <h2>🗄️ Step 1 — SAP HANA Cloud Connection</h2>
+                <p>Enter your HANA Cloud instance details. The app will test the connection before proceeding.</p>
+            </div>
+            <div class="card-body">
+                <div class="info-box">
+                    💡 Find your HANA host in <strong>SAP BTP Cockpit → HANA Cloud → Manage HANA Cloud → Copy SQL Endpoint</strong>. Remove the port number — only the hostname is needed here.
+                </div>
+                <div class="field">
+                    <label>HANA Cloud Host <span class="req">*</span></label>
+                    <input type="text" name="host" id="host" placeholder="xxxxxxxx.hanacloud.ondemand.com"
+                           value="{{ form.get('host', '') }}" required>
+                    <div class="hint">e.g. <code>77a696e3-xxxx.hna1.prod-eu10.hanacloud.ondemand.com</code></div>
+                </div>
+                <div class="row2">
+                    <div class="field">
+                        <label>Port</label>
+                        <input type="number" name="port" id="port" value="{{ form.get('port', '443') }}" placeholder="443">
+                    </div>
+                    <div class="field">
+                        <label>DB User</label>
+                        <input type="text" name="db_user" id="db_user" value="{{ form.get('db_user', 'DBADMIN') }}" placeholder="DBADMIN">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>HANA Password <span class="req">*</span></label>
+                    <div class="pw-wrap">
+                        <input type="password" name="db_password" id="db_password"
+                               placeholder="Your DBADMIN password" value="{{ form.get('db_password', '') }}" required>
+                        <button type="button" class="pw-eye" onclick="togglePw('db_password', this)">👁</button>
+                    </div>
+                    <div class="hint">⚠️ This password is used only to <strong>connect</strong> to HANA — it will NOT be changed.</div>
+                </div>
+                <div class="conn-result" id="connResult"></div>
+                <div class="btn-row">
+                    <button type="button" class="btn-next" style="background:#6b7a8d; box-shadow:none;" onclick="testConn()">
+                        <span id="testSpinner" class="spinner"></span>
+                        <span id="testBtnText">🔌 Test Connection</span>
+                    </button>
+                    <button type="button" class="btn-next" onclick="goStep(2)">Next →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Step 2: Admin Account ── -->
+        <div class="step-panel" id="panel2">
+            <div class="card-header">
+                <h2>👤 Step 2 — Admin Account</h2>
+                <p>Set up the super admin who manages the app, and optionally a sub-admin delegate.</p>
+            </div>
+            <div class="card-body">
+                <div class="field">
+                    <label>Admin Email <span class="req">*</span></label>
+                    <input type="email" name="admin_email" id="admin_email"
+                           placeholder="your-admin@email.com"
+                           value="{{ form.get('admin_email', '') }}" required>
+                    <div class="hint">This email receives OTPs for admin login and support requests.</div>
+                </div>
+                <div class="field">
+                    <label>Admin Password <span class="req">*</span></label>
+                    <div class="pw-wrap">
+                        <input type="password" name="admin_password" id="admin_password"
+                               placeholder="Strong password for admin fallback login"
+                               value="{{ form.get('admin_password', '') }}" required>
+                        <button type="button" class="pw-eye" onclick="togglePw('admin_password', this)">👁</button>
+                    </div>
+                    <div class="hint">Used as fallback when OTP email fails. Min 8 characters recommended.</div>
+                </div>
+                <div class="field">
+                    <label>Sub-Admin / Delegate <span class="opt">(optional)</span></label>
+                    <input type="text" name="sub_admin" id="sub_admin"
+                           placeholder="username or email, comma-separated"
+                           value="{{ form.get('sub_admin', '') }}">
+                    <div class="hint">These users can access the Settings page. Separate multiple with commas. e.g. <code>alice, bob@company.com</code></div>
+                </div>
+                <div class="field">
+                    <label>App URL <span class="opt">(optional)</span></label>
+                    <input type="text" name="app_url" id="app_url"
+                           placeholder="https://custtrack.cfapps.eu10.hana.ondemand.com"
+                           value="{{ form.get('app_url', 'http://localhost:8080') }}">
+                    <div class="hint">Used in email links. Update after deploying to SAP BTP.</div>
+                </div>
+                <div class="btn-row">
+                    <button type="button" class="btn-back" onclick="goStep(1)">← Back</button>
+                    <button type="button" class="btn-next" onclick="goStep(3)">Next →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Step 3: Email (Gmail) ── -->
+        <div class="step-panel" id="panel3">
+            <div class="card-header">
+                <h2>📧 Step 3 — Email Configuration</h2>
+                <p>CustTrack uses Gmail to send OTP codes and customer reminders.</p>
+            </div>
+            <div class="card-body">
+                <div class="info-box">
+                    <strong>How to get a Gmail App Password:</strong><br>
+                    1. Go to <a href="https://myaccount.google.com/security" target="_blank">Google Account → Security</a><br>
+                    2. Enable <strong>2-Step Verification</strong> (required)<br>
+                    3. Go to <a href="https://myaccount.google.com/apppasswords" target="_blank">App Passwords</a><br>
+                    4. Select app: <strong>Mail</strong>, device: <strong>Other</strong> → Generate<br>
+                    5. Copy the 16-character password (e.g. <code>abcd efgh ijkl mnop</code>)
+                </div>
+                <div class="field">
+                    <label>Gmail Sender Address <span class="opt">(optional — defaults to admin email)</span></label>
+                    <input type="email" name="sender_email" id="sender_email"
+                           placeholder="your-gmail@gmail.com"
+                           value="{{ form.get('sender_email', '') }}">
+                    <div class="hint">The Gmail account that sends OTPs and reminders. Leave blank to use admin email.</div>
+                </div>
+                <div class="field">
+                    <label>Gmail App Password <span class="opt">(optional — skip if no email needed)</span></label>
+                    <div class="pw-wrap">
+                        <input type="password" name="sender_password" id="sender_password"
+                               placeholder="16-character app password"
+                               value="{{ form.get('sender_password', '') }}">
+                        <button type="button" class="pw-eye" onclick="togglePw('sender_password', this)">👁</button>
+                    </div>
+                    <div class="hint">NOT your Gmail login password — use the App Password generated above.</div>
+                </div>
+                <div class="btn-row">
+                    <button type="button" class="btn-back" onclick="goStep(2)">← Back</button>
+                    <button type="button" class="btn-next" onclick="goStep(4)">Next →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Step 4: Review & Confirm ── -->
+        <div class="step-panel" id="panel4">
+            <div class="card-header">
+                <h2>✅ Step 4 — Review & Complete Setup</h2>
+                <p>Check your settings below, then click <strong>Complete Setup</strong> to launch CustTrack.</p>
+            </div>
+            <div class="card-body">
+                <div id="summaryBox" style="margin-bottom:20px;">
+                    <div class="summary-row"><span class="key">HANA Host</span><span class="val" id="sum_host">—</span></div>
+                    <div class="summary-row"><span class="key">HANA Port / User</span><span class="val" id="sum_port_user">—</span></div>
+                    <div class="summary-row"><span class="key">HANA Password</span><span class="val" id="sum_pw">—</span></div>
+                    <div class="summary-row"><span class="key">Admin Email</span><span class="val" id="sum_admin_email">—</span></div>
+                    <div class="summary-row"><span class="key">Admin Password</span><span class="val" id="sum_admin_pw">—</span></div>
+                    <div class="summary-row"><span class="key">Sub-Admin / Delegate</span><span class="val" id="sum_sub_admin">—</span></div>
+                    <div class="summary-row"><span class="key">Gmail Sender</span><span class="val" id="sum_sender">—</span></div>
+                    <div class="summary-row"><span class="key">App URL</span><span class="val" id="sum_app_url">—</span></div>
+                </div>
+                <div class="info-box" style="margin-bottom:16px;">
+                    🔒 All credentials are saved to <strong>hana_config.json</strong> on the server. You can update them anytime from the <strong>Settings</strong> page after logging in as admin.
+                </div>
+                <div class="btn-row">
+                    <button type="button" class="btn-back" onclick="goStep(3)">← Back</button>
+                    <button type="submit" class="btn-next" id="submitBtn">
+                        <span id="submitSpinner" class="spinner"></span>
+                        <span id="submitText">🚀 Complete Setup</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<div style="text-align:center; margin-top:20px; font-size:0.72rem; color:#aab;">
+    Made with <b style="color:#e74c3c;">&#10084;</b> on <strong style="color:#0d1b2a;">SAP BTP</strong>
+</div>
+
+<script>
+var currentStep = {% if error %}1{% else %}1{% endif %};
+
+function goStep(n) {
+    // Validate before moving forward
+    if (n > currentStep) {
+        if (currentStep === 1) {
+            var host = document.getElementById('host').value.trim();
+            var pw = document.getElementById('db_password').value.trim();
+            if (!host || !pw) { alert('Please enter the HANA host and password.'); return; }
+        }
+        if (currentStep === 2) {
+            var ae = document.getElementById('admin_email').value.trim();
+            var ap = document.getElementById('admin_password').value.trim();
+            if (!ae || !ap) { alert('Admin email and password are required.'); return; }
+        }
+    }
+
+    // Hide current, show new
+    document.getElementById('panel' + currentStep).classList.remove('active');
+    document.getElementById('panel' + n).classList.add('active');
+
+    // Update step indicators
+    for (var i = 1; i <= 4; i++) {
+        var s = document.getElementById('s' + i);
+        s.classList.remove('active', 'done');
+        if (i < n) s.classList.add('done');
+        else if (i === n) s.classList.add('active');
+        if (i < 4) {
+            var l = document.getElementById('l' + i);
+            l.classList.toggle('done', i < n);
+        }
+        // Update circle content
+        var circle = s.querySelector('.step-circle');
+        circle.textContent = i < n ? '✓' : i;
+    }
+
+    currentStep = n;
+
+    // Populate summary on step 4
+    if (n === 4) populateSummary();
+}
+
+function populateSummary() {
+    var host = document.getElementById('host').value.trim();
+    var port = document.getElementById('port').value.trim();
+    var dbUser = document.getElementById('db_user').value.trim();
+    var dbPw = document.getElementById('db_password').value.trim();
+    var adminEmail = document.getElementById('admin_email').value.trim();
+    var adminPw = document.getElementById('admin_password').value.trim();
+    var subAdmin = document.getElementById('sub_admin').value.trim();
+    var senderEmail = document.getElementById('sender_email').value.trim();
+    var appUrl = document.getElementById('app_url').value.trim();
+
+    document.getElementById('sum_host').textContent = host || '—';
+    document.getElementById('sum_port_user').textContent = (port || '443') + ' / ' + (dbUser || 'DBADMIN');
+    document.getElementById('sum_pw').textContent = dbPw ? '●'.repeat(Math.min(dbPw.length, 8)) + ' (' + dbPw.length + ' chars)' : '—';
+    document.getElementById('sum_admin_email').textContent = adminEmail || '—';
+    document.getElementById('sum_admin_pw').textContent = adminPw ? '●'.repeat(Math.min(adminPw.length, 8)) + ' (' + adminPw.length + ' chars)' : '—';
+    document.getElementById('sum_sub_admin').textContent = subAdmin || '(none)';
+    document.getElementById('sum_sender').textContent = senderEmail || adminEmail || '(same as admin email)';
+    document.getElementById('sum_app_url').textContent = appUrl || 'http://localhost:8080';
+}
+
+function togglePw(id, btn) {
+    var inp = document.getElementById(id);
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁'; }
+}
+
+function testConn() {
+    var host = document.getElementById('host').value.trim();
+    var port = document.getElementById('port').value.trim() || '443';
+    var user = document.getElementById('db_user').value.trim() || 'DBADMIN';
+    var pw = document.getElementById('db_password').value.trim();
+    if (!host || !pw) { alert('Enter HANA host and password first.'); return; }
+
+    var btn = document.querySelector('[onclick="testConn()"]');
+    var spinner = document.getElementById('testSpinner');
+    var btnText = document.getElementById('testBtnText');
+    var result = document.getElementById('connResult');
+
+    btn.disabled = true;
+    spinner.style.display = 'block';
+    btnText.textContent = 'Testing…';
+    result.style.display = 'none';
+
+    fetch('/setup/test_conn', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({host: host, port: parseInt(port), user: user, password: pw})
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        btnText.textContent = '🔌 Test Connection';
+        result.style.display = 'block';
+        if (d.success) {
+            result.className = 'conn-result ok';
+            result.textContent = '✅ Connection successful! HANA Cloud is reachable.';
+        } else {
+            result.className = 'conn-result fail';
+            result.textContent = '❌ ' + (d.error || 'Connection failed. Check host/port/password.');
+        }
+    })
+    .catch(function() {
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        btnText.textContent = '🔌 Test Connection';
+        result.style.display = 'block';
+        result.className = 'conn-result fail';
+        result.textContent = '❌ Network error. Make sure the app is running.';
+    });
+}
+
+function handleSubmit() {
+    var btn = document.getElementById('submitBtn');
+    var spinner = document.getElementById('submitSpinner');
+    var txt = document.getElementById('submitText');
+    btn.disabled = true;
+    spinner.style.display = 'block';
+    txt.textContent = 'Setting up…';
+    return true;
+}
+
+// If there was a server-side error, stay on step 1
+{% if error %}
+goStep(1);
+{% endif %}
+</script>
+</body>
+</html>
