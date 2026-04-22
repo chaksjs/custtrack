@@ -1,0 +1,13 @@
+---
+applications:
+- name: custtrack
+  memory: 512M
+  disk_quota: 1G
+  instances: 1
+  buildpacks:
+    - python_buildpack
+  command: gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 app:app
+  health-check-type: http
+  health-check-http-endpoint: /
+  env:
+    FLASK_SECRET_KEY: change-me-to-a-random-secret
